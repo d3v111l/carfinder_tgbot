@@ -1,14 +1,9 @@
-﻿using carfinder_tgbotcon.ClassModels;
-using Microsoft.VisualBasic;
-using Newtonsoft.Json;
-using Telegram.Bot;
+﻿using Telegram.Bot;
 using Telegram.Bot.Exceptions;
-using Telegram.Bot.Extensions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.Payments;
-using Telegram.Bot.Types.ReplyMarkups;
+
 
 namespace carfinder_tgbotcon
 {
@@ -71,76 +66,130 @@ namespace carfinder_tgbotcon
         int year_max = 0;               //2023
         int i = 0;
         int price = 0;
+        string error = "Щось пішло не так...";
+        
         List<string> idsList = new List<string>();
         private async Task HandlerMessageAsync(ITelegramBotClient botClient, Message message)
         {
-
             switch (allMenus.currentMenu)
             {
                 case "mark":
-                    userModelName = "";
-                    var MarkDictionary = allMenus.MarkParamsRes(botClient, message).Result;
-                    userMarkName = message.Text;
-                    userMarkId = MarkDictionary[message.Text];
-                    await allMenus.Search(botClient, message);
-                    await botClient.SendTextMessageAsync(message.Chat.Id, $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}\nЦіна до: {price_max}\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
+                    try
+                    {
+                        userModelName = "";
+                        var MarkDictionary = allMenus.MarkParamsRes(botClient, message).Result;
+                        userMarkName = message.Text;
+                        userMarkId = MarkDictionary[message.Text];
+                        await allMenus.Search(botClient, message);
+                        await botClient.SendTextMessageAsync(message.Chat.Id, $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}$\nЦіна до: {price_max}$\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
+                    }
                     allMenus.currentMenu = "";
                     break;
 
                 case "model":
-                    if (userMarkName != "")
+                    try
                     {
-                        var ModelDictionary = allMenus.ModelParamsRes(botClient, message, userMarkId.ToString()).Result;
-                        userModelName = message.Text;
-                        userModelId = ModelDictionary[message.Text];
-                        await allMenus.Search(botClient, message);
-                        await botClient.SendTextMessageAsync(message.Chat.Id, $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}\nЦіна до: {price_max}\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
-                        allMenus.currentMenu = "";
+                        if (userMarkName != "")
+                        {
+                            var ModelDictionary = allMenus.ModelParamsRes(botClient, message, userMarkId.ToString())
+                                .Result;
+                            userModelName = message.Text;
+                            userModelId = ModelDictionary[message.Text];
+                            await allMenus.Search(botClient, message);
+                            await botClient.SendTextMessageAsync(message.Chat.Id,
+                                $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}$\nЦіна до: {price_max}$\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
+                            allMenus.currentMenu = "";
+                        }
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
                     }
                     break;
 
                 case "price_min":
-                    price_min = Convert.ToInt32(message.Text);
+                    try
+                    {
+                        price_min = Convert.ToInt32(message.Text);
 
-                    if (Convert.ToInt32(price_max) < Convert.ToInt32(price_min) && Convert.ToInt32(price_max) != 0)
-                    {
-                        await botClient.SendTextMessageAsync(message.Chat.Id, $"Мінімальна ціна не може бути вищою за максимальну!");
+                        if (Convert.ToInt32(price_max) < Convert.ToInt32(price_min) && Convert.ToInt32(price_max) != 0)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat.Id,
+                                $"Мінімальна ціна не може бути вищою за максимальну!");
+                        }
+                        else
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat.Id,
+                                $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}$\nЦіна до: {price_max}$\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
+                        }
                     }
-                    else
+                    catch
                     {
-                        await botClient.SendTextMessageAsync(message.Chat.Id, $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}\nЦіна до: {price_max}\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
                     }
+
                     allMenus.currentMenu = "";
                     break;
 
                 case "price_max":
-                    price_max = Convert.ToInt32(message.Text);
+                    try
+                    {
+                        price_max = Convert.ToInt32(message.Text);
 
-                    if (Convert.ToInt32(price_max) < Convert.ToInt32(price_min))
-                    {
-                        await botClient.SendTextMessageAsync(message.Chat.Id, $"Максимальна ціна не може бути нижчою за мінімальну!");
+                        if (Convert.ToInt32(price_max) < Convert.ToInt32(price_min))
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat.Id,
+                                $"Максимальна ціна не може бути нижчою за мінімальну!");
+                        }
+                        else
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat.Id,
+                                $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}$\nЦіна до: {price_max}$\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
+                        }
                     }
-                    else
+                    catch
                     {
-                        await botClient.SendTextMessageAsync(message.Chat.Id, $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}\nЦіна до: {price_max}\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
                     }
                     allMenus.currentMenu = "";
                     break;
 
                 case "year_min":
-                    year_min = Convert.ToInt32(message.Text);
-                    await botClient.SendTextMessageAsync(message.Chat.Id, $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}\nЦіна до: {price_max}\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
+                    try
+                    {
+                        year_min = Convert.ToInt32(message.Text);
+                        await botClient.SendTextMessageAsync(message.Chat.Id,
+                            $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}$\nЦіна до: {price_max}$\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
+                        
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
+                    }
                     allMenus.currentMenu = "";
                     break;
 
                 case "year_max":
-                    year_max = Convert.ToInt32(message.Text);
-                    await botClient.SendTextMessageAsync(message.Chat.Id, $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}\nЦіна до: {price_max}\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
+                    try
+                    {
+                        year_max = Convert.ToInt32(message.Text);
+                        await botClient.SendTextMessageAsync(message.Chat.Id,
+                            $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}$\nЦіна до: {price_max}$\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
+                        
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
+                    }
                     allMenus.currentMenu = "";
                     break;
 
                 case "done":
-                    await botClient.SendTextMessageAsync(message.Chat.Id, $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}\nЦіна до: {price_max}\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
+                    await botClient.SendTextMessageAsync(message.Chat.Id, $"Обрані параметри зараз\nМарка: {userMarkName}\nМодель: {userModelName}\nЦіна від: {price_min}$\nЦіна до: {price_max}$\nМінімальний рік: {year_min}\nМаксимальний рік: {year_max}");
                     allMenus.currentMenu = "";
                     break;
 
@@ -157,7 +206,6 @@ namespace carfinder_tgbotcon
                     break;
 
                 case "/keyboard":
-                    await allMenus.Home(botClient, message);
                     allMenus.currentMenu = "home";
                     break;
 
@@ -187,6 +235,7 @@ namespace carfinder_tgbotcon
                     break;
 
                 case "✅Готово":
+                    await allMenus.LuxuryLevel(botClient, message, price_min, price_max);
                     await allMenus.Search(botClient, message);
                     allMenus.currentMenu = "done";
                     break;
@@ -207,17 +256,37 @@ namespace carfinder_tgbotcon
                     break;
 
                 case "🚘Марка":
-                    await allMenus.MarkParams(botClient, message);
+                    try
+                    {
+                        await allMenus.MarkParams(botClient, message);
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
+                    }
                     allMenus.currentMenu = "mark";
                     break;
 
                 case "🚙Модель":
-                    await allMenus.ModelParams(botClient, message, userMarkId.ToString());
+                    try
+                    {
+                        await allMenus.ModelParams(botClient, message, userMarkId.ToString());
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
+                    }
                     allMenus.currentMenu = "model";
                     break;
                 case "🔍Пошук":
-                    await allMenus.AdvButtons(botClient, message);
-                    //await allMenus.AdvById(botClient, message, result);
+                    try
+                    {
+                        await allMenus.AdvButtons(botClient, message);
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
+                    }
                     allMenus.currentMenu = "getids";
                     break;
                 case "📊Середня ціна за параметрами":
@@ -256,30 +325,51 @@ namespace carfinder_tgbotcon
                     break;
 
                 case "getids":
-                    if (userMarkId == 0 || userModelId == 0 || price_min == 0 || price_max == 0 || year_min == 0 || year_max == 0 || year_max < year_min)
+                    try
                     {
-                        await botClient.SendTextMessageAsync(message.Chat.Id, "Введіть всі дані коректно!");
-                        await allMenus.Search(botClient, message);
-                        allMenus.currentMenu = "";
+                        if (userMarkId == 0 || userModelId == 0 || price_min == 0 || price_max == 0 || year_min == 0 || year_max == 0 || year_max < year_min)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat.Id, "Введіть всі дані коректно!");
+                            await allMenus.Search(botClient, message);
+                            allMenus.currentMenu = "";
+                        }
+                        else
+                        {
+                            idsList = allMenus.GetIds(botClient, message, userMarkId, userModelId, price_min, price_max, year_min, year_max).Result;
+                            await allMenus.AdvById(botClient, message, idsList, i);
+                        }
                     }
-                    else
+                    catch
                     {
-                        idsList = allMenus.GetIds(botClient, message, userMarkId, userModelId, price_min, price_max, year_min, year_max).Result;
-                        await allMenus.AdvById(botClient, message, idsList, i);
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
                     }
                     break;
 
                 case "previous":
-                    i--;
-                    if (i < 0)
-                        i++;
-                    price = await allMenus.AdvById(botClient, message, idsList, i);
+                    try
+                    {
+                        i--;
+                        if (i < 0)
+                            i++;
+                        price = await allMenus.AdvById(botClient, message, idsList, i);
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
+                    }
                     break;
                 case "next":
-                    i++;
-                    if (i >= idsList.Count)
-                        i--;
-                    price = await allMenus.AdvById(botClient, message, idsList, i);
+                    try
+                    {
+                        i++;
+                        if (i >= idsList.Count)
+                            i--;
+                        price = await allMenus.AdvById(botClient, message, idsList, i);
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
+                    }
                     break;
                 case "like":
                     await allMenus.PutLikes(botClient, message, idsList, i, price);
@@ -288,28 +378,53 @@ namespace carfinder_tgbotcon
                     break;
 
                 case "avrprice":
-                    var avrprice = allMenus.AvrPrice(botClient, message, userMarkId, userModelId, year_min, year_max).Result;
-                    await botClient.SendTextMessageAsync(message.Chat.Id, $"Середня ціна обраної моделі наразі становить {avrprice[1]}$.\nПроаналізовано {avrprice[0]} оголошень.");
+                    
+                    try
+                    {
+                        var avrprice = allMenus.AvrPrice(botClient, message, userMarkId, userModelId, year_min, year_max).Result;
+                        await botClient.SendTextMessageAsync(message.Chat.Id, $"Середня ціна обраної моделі наразі становить {avrprice[1]}$.\nПроаналізовано {avrprice[0]} оголошень.");
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
+                    }
                     allMenus.currentMenu = "";
                     break;
                 case "moreabout":
-                    if (userMarkName != "" && userModelName != "")
+                    try
                     {
-                        await botClient.SendTextMessageAsync(message.Chat.Id, "Зачекайте, інформація генерується...");
-                        var moreabout = allMenus.GetMoreAbout(botClient, message, userMarkName, userModelName).Result;
-                        await botClient.SendTextMessageAsync(message.Chat.Id, moreabout);
-                        allMenus.currentMenu = "";
+                        if (userMarkName != "" && userModelName != "")
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat.Id,
+                                "Зачекайте, інформація генерується...");
+                            var moreabout = allMenus.GetMoreAbout(botClient, message, userMarkName, userModelName)
+                                .Result;
+                            await botClient.SendTextMessageAsync(message.Chat.Id, moreabout);
+                            allMenus.currentMenu = "";
+                        }
+                        else
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat.Id, "Введіть всі дані!");
+                            allMenus.currentMenu = "";
+                            await allMenus.Search(botClient, message);
+                        }
                     }
-                    else
+                    catch
                     {
-                        await botClient.SendTextMessageAsync(message.Chat.Id, "Введіть всі дані!");
-                        allMenus.currentMenu = "";
-                        await allMenus.Search(botClient, message);
+                        await botClient.SendTextMessageAsync(message.Chat.Id, error);
                     }
 
                     break;
                 case "openlikes":
-                    await allMenus.GetLikes(botClient, message, allMenus);
+                    try
+                    {
+                        await allMenus.GetLikes(botClient, message, allMenus);
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, "Ви нічого не вподобали або щось пішло не так...");
+                    }
+
                     allMenus.currentMenu = "";
                     break;
                 case "deletelikes":

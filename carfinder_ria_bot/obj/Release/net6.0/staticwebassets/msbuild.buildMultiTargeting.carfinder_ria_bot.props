@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\carfinder_ria_bot.props" />
+</Project>

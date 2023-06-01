@@ -1,0 +1,9 @@
+C:\Users\007fo\AppData\Local\Temp\rider-publish5675960563705541411\carfinder_ria_bot.exe
+C:\Users\007fo\AppData\Local\Temp\rider-publish5675960563705541411\appsettings.Development.json
+C:\Users\007fo\AppData\Local\Temp\rider-publish5675960563705541411\appsettings.json
+C:\Users\007fo\AppData\Local\Temp\rider-publish5675960563705541411\carfinder_ria_bot.dll
+C:\Users\007fo\AppData\Local\Temp\rider-publish5675960563705541411\carfinder_ria_bot.deps.json
+C:\Users\007fo\AppData\Local\Temp\rider-publish5675960563705541411\carfinder_ria_bot.runtimeconfig.json
+C:\Users\007fo\AppData\Local\Temp\rider-publish5675960563705541411\carfinder_ria_bot.pdb
+C:\Users\007fo\AppData\Local\Temp\rider-publish5675960563705541411\Newtonsoft.Json.dll
+C:\Users\007fo\AppData\Local\Temp\rider-publish5675960563705541411\Telegram.Bot.dll

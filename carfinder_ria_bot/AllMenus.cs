@@ -1,22 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using static carfinder_tgbotcon.BotUi;
 using Telegram.Bot.Polling;
 using Newtonsoft.Json;
 using carfinder_tgbotcon.ClassModels;
-using System.Reflection.Metadata.Ecma335;
-using Telegram.Bot.Requests.Abstractions;
-using System.Net.Http;
-using Telegram.Bot.Types.Enums;
-using System.Text.Json.Nodes;
-using Microsoft.VisualBasic;
-using System.Reflection;
+
 
 namespace carfinder_tgbotcon
 {
@@ -27,6 +16,7 @@ namespace carfinder_tgbotcon
         ReceiverOptions receiverOptions = new ReceiverOptions { AllowedUpdates = { } };
 
         public string currentMenu = "Home";
+
 
         public async Task Home(ITelegramBotClient botClient, Message message)
         {
@@ -88,7 +78,8 @@ namespace carfinder_tgbotcon
         public async Task MarkParams(ITelegramBotClient botClient, Message message)
         {
             var httpClient = new HttpClient();
-            var request = new HttpRequestMessage(new HttpMethod("GET"), "https://autoriaapi.azurewebsites.net/GetMarks?category_id1=1");
+            var request = new HttpRequestMessage(new HttpMethod("GET"),
+                    "https://autoriaapi.azurewebsites.net/GetMarks?category_id1=1");
             var response = await httpClient.SendAsync(request);
             var answer = await response.Content.ReadAsStringAsync();
             List<Marks> carDataList = JsonConvert.DeserializeObject<List<Marks>>(answer);
@@ -97,15 +88,18 @@ namespace carfinder_tgbotcon
             {
                 carDictionary.Add(carData.Name, carData.Value);
             }
+
             KeyboardButton[][] keyboardButtons =
-            carDictionary.Keys.Select(key => new KeyboardButton[] { new KeyboardButton(key) }).ToArray();
+                carDictionary.Keys.Select(key => new KeyboardButton[] { new KeyboardButton(key) }).ToArray();
             ReplyKeyboardMarkup replyMarkup = new ReplyKeyboardMarkup(keyboardButtons);
             await botClient.SendTextMessageAsync(message.Chat.Id, "Оберіть марку", replyMarkup: replyMarkup);
-        }
+            }
         public async Task<Dictionary<string, int>> MarkParamsRes(ITelegramBotClient botClient, Message message)
         {
+
             var httpClient = new HttpClient();
-            var request = new HttpRequestMessage(new HttpMethod("GET"), "https://autoriaapi.azurewebsites.net/GetMarks?category_id1=1");
+            var request = new HttpRequestMessage(new HttpMethod("GET"),
+                    "https://autoriaapi.azurewebsites.net/GetMarks?category_id1=1");
             var response = await httpClient.SendAsync(request);
             var answer = await response.Content.ReadAsStringAsync();
             List<Marks> carDataList = JsonConvert.DeserializeObject<List<Marks>>(answer);
@@ -114,7 +108,9 @@ namespace carfinder_tgbotcon
             {
                 carDictionary.Add(carData.Name, carData.Value);
             }
+
             return carDictionary;
+
         }
 
         public async Task ModelParams(ITelegramBotClient botClient, Message message, string mark)
@@ -195,7 +191,7 @@ namespace carfinder_tgbotcon
             var answer = await response.Content.ReadAsStringAsync();
             var adv = JsonConvert.DeserializeObject<Adv>(answer);
 
-            string output = $"{adv.MarkName} {adv.ModelName} {adv.AutoData.Year}\r\nМісто: {adv.LocationCityName}\r\nДвигун: {adv.AutoData.FuelName}\r\nКПП: {adv.AutoData.GearboxName}\r\nПробіг: {adv.AutoData.Race}\r\nЦіна: {adv.Usd}";
+            string output = $"{adv.MarkName} {adv.ModelName} {adv.AutoData.Year}\r\nМісто: {adv.LocationCityName}\r\nДвигун: {adv.AutoData.FuelName}\r\nКПП: {adv.AutoData.GearboxName}\r\nПробіг: {adv.AutoData.Race}\r\nЦіна: {adv.Usd}$";
             int oldPrice = adv.Usd;
             return (output, oldPrice);
         }
@@ -224,7 +220,7 @@ namespace carfinder_tgbotcon
             var answer = await response.Content.ReadAsStringAsync();
             var avr = JsonConvert.DeserializeObject<Avr>(answer);
             var total = avr.Total;
-            var average = avr.ArithmeticMean;
+            var average = Math.Round(avr.ArithmeticMean);
             double[] result = new double[2];
             result[0] = total;
             result[1] = average;
@@ -340,7 +336,24 @@ namespace carfinder_tgbotcon
             var response = await httpClient.SendAsync(request);
             await botClient.SendTextMessageAsync(message.Chat.Id, "✅Вподобайки видалені");
         }
+        
+        public async Task LuxuryLevel(ITelegramBotClient botClient, Message message, int price_min, int price_max)
+        {
+            if (price_max < 8000)
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Ви обрали клас 'Економ'");
+            else if (price_min > 8000 && price_max < 20000)
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Ви обрали клас 'Середній'");
+            else if (price_min > 20000 && price_max < 60000)
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Ви обрали клас 'Преміум'");
+            else if (price_min > 60000 && price_max < 90000)
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Ви обрали клас 'Преміум+'");
+            else if (price_min > 90000 && price_max < 130000)
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Ви обрали клас 'Люкс'");
+            else if (price_min > 130000)
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Ви обрали клас 'Делюкс'");
+            else
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Проміжок цін занадто великий для визначення класу авто");
+        }
 
     }  
 }
-
